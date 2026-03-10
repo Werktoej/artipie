@@ -6,6 +6,7 @@ package com.artipie;
 
 import com.artipie.adapters.docker.DockerProxy;
 import com.artipie.adapters.file.FileProxy;
+import com.artipie.adapters.hf.HuggingFaceProxy;
 import com.artipie.adapters.maven.MavenProxy;
 import com.artipie.adapters.php.ComposerProxy;
 import com.artipie.adapters.pypi.PypiProxy;
@@ -173,6 +174,12 @@ public class RepositorySlices {
                 clientSlices = jettyClientSlices(cfg);
                 slice = trimPathSlice(
                     new FileProxy(clientSlices, cfg, artifactEvents())
+                );
+                break;
+            case "huggingface-proxy":
+                clientSlices = jettyClientSlices(cfg);
+                slice = trimPathSlice(
+                    new HuggingFaceProxy(clientSlices, cfg, artifactEvents())
                 );
                 break;
             case "npm":

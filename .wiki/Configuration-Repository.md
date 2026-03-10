@@ -29,6 +29,7 @@ For now Artipie supports the following repository types:
 | [Rpm](rpm)                       | `.rpm` ([linux binaries](https://rpm-packaging-guide.github.io/)) packages repository     |
 | [Docker](docker)                 | [Docker images registry](https://docs.docker.com/registry/)                               |
 | [Docker Proxy](docker-proxy)     | Proxy for docker repository                                                               |
+| [Hugging Face Proxy](huggingface-proxy) | Proxy for [Hugging Face Hub](https://huggingface.co) models                                |
 | [Helm](helm)                     | [Helm charts repository](https://helm.sh/docs/topics/chart_repository/)                   |
 | [Npm](npm)                       | [JavaScript code sharing and packages store](https://www.npmjs.com/)                      |
 | [Npm Proxy](npm-proxy)           | Proxy for NPM repository                                                                  |

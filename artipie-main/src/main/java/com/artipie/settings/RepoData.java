@@ -109,6 +109,16 @@ public final class RepoData {
     }
 
     /**
+     * Obtain storage for a repository (resolved from repo config).
+     * Use this for content listing and other repo-scoped storage operations.
+     * @param rname Repository name
+     * @return Completion with the storage for the repository
+     */
+    public CompletionStage<Storage> storage(final RepositoryName rname) {
+        return this.repoStorage(rname);
+    }
+
+    /**
      * Obtain storage from repository settings.
      * @param rname Repository name
      * @return Abstract storage

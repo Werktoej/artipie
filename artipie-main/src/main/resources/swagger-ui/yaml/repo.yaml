@@ -174,6 +174,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/v1/repository/{rname}/content:
+    get:
+      summary: List repository content (browse artifacts)
+      description: |
+        Returns one level only (direct children of path); no deep recursion.
+        Use path, limit, and offset for pagination. May be slow on very large repos.
+        Supported for file, file-proxy, huggingface-proxy (cached paths); other types may be unsupported.
+      operationId: listContent
+      tags:
+        - repository
+      parameters:
+        - name: rname
+          in: path
+          required: true
+          description: Name of the repository
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: false
+          description: Path within repository (default root)
+          schema:
+            type: string
+            default: ""
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of entries to return
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          required: false
+          description: Number of entries to skip (pagination)
+          schema:
+            type: integer
+            default: 0
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: List of content entries (files and directories)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentEntry'
+        '400':
+          description: Wrong repository name or path
+        '403':
+          description: Permission denied
+        '404':
+          description: Repository not found
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/v1/repository/{rname}/move:
     put:
       summary: Move repository
@@ -471,6 +534,23 @@ components:
       properties:
         new_name:
           type: string
+    ContentEntry:
+      type: object
+      required:
+        - name
+        - path
+        - type
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+          enum: [file, dir]
+        size:
+          type: integer
+          description: Size in bytes (optional, for files)
   responses:
     UnauthorizedError:
       description: "Access token is missing or invalid"

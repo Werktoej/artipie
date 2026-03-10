@@ -139,12 +139,15 @@ public final class RestApi extends AbstractVerticle {
         final RouterBuilder tokenRb, final RouterBuilder settingsRb, final RouterBuilder rolesRb) {
         this.addJwtAuth(tokenRb, repoRb, userRb, settingsRb, rolesRb);
         final BlockingStorage asto = new BlockingStorage(this.configsStorage);
+        final RepoData repoData = new RepoData(this.configsStorage, this.caches.storagesCache());
+        final ManageRepoSettings manageRepoSettings = new ManageRepoSettings(asto);
         new RepositoryRest(
             this.caches.filtersCache(),
-            new ManageRepoSettings(asto),
-            new RepoData(this.configsStorage, this.caches.storagesCache()),
+            manageRepoSettings,
+            repoData,
             this.security.policy(), this.events
         ).init(repoRb);
+        new ContentRest(repoData, manageRepoSettings, this.security.policy()).init(repoRb);
         new StorageAliasesRest(
             this.caches.storagesCache(), asto, this.security.policy()
         ).init(repoRb);
@@ -162,6 +165,13 @@ public final class RestApi extends AbstractVerticle {
             }
         }
         new SettingsRest(this.port).init(settingsRb);
+        final Router mainRouter = Router.router(this.vertx);
+        mainRouter.get("/api/health").handler(
+            rc -> rc.response()
+                .setStatusCode(200)
+                .putHeader("Content-Type", "application/json")
+                .end("{\"status\":\"up\"}")
+        );
         final Router router = repoRb.createRouter();
         router.route("/*").subRouter(rolesRb.createRouter());
         router.route("/*").subRouter(userRb.createRouter());
@@ -170,6 +180,7 @@ public final class RestApi extends AbstractVerticle {
         router.route("/api/*").handler(
             StaticHandler.create("swagger-ui").setIndexPage("index.html")
         );
+        mainRouter.mountSubRouter("/", router);
         final HttpServer server;
         final String schema;
         if (this.keystore.isPresent() && this.keystore.get().enabled()) {
@@ -181,7 +192,7 @@ public final class RestApi extends AbstractVerticle {
             server = this.vertx.createHttpServer();
             schema = "http";
         }
-        server.requestHandler(router)
+        server.requestHandler(mainRouter)
             .listen(this.port)
             .onComplete(res -> Logger.info(this, "Rest API started on port %d, swagger is available on %s://localhost:%d/api/index.html", this.port, schema, this.port))
             .onFailure(err -> Logger.error(this, err.getMessage()));
