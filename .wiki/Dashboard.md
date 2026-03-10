@@ -5,7 +5,7 @@ The Artipie front-end provides a convenient dashboard with UI pages for managing
 Artipie front-end is distributed as [Docker image](https://hub.docker.com/r/artipie/front) and as fat jar.
 The jar file can be downloaded on GitHub [releases page](https://github.com/artipie/front/releases).
 
-The Artipie front-end is independent part of Artipie project that interacts with Artipie server by using [REST-API services](./Rest-api) provided by Artipie server.
+The Artipie front-end is independent part of Artipie project that interacts with Artipie server by using [REST-API services](./Rest-api) provided by Artipie server. The server exposes a [Content API](./Rest-api#content-api-browse-artifacts) for listing repository artifacts (browse by path with pagination). The dashboard (artifact browser, search, CRUD from UI) is implemented in the [Artipie front](https://github.com/artipie/front) repository; this server repo only provides the API.
 
 The Artipie dashboard provides following functionality:
 * Sign in

@@ -52,6 +52,10 @@ public final class MainSlice extends Slice.Wrap {
             new SliceRoute(
                 MainSlice.EMPTY_PATH,
                 new RtRulePath(
+                    new RtRule.ByPath(Pattern.compile("/\\.health/live")),
+                    new LivenessSlice()
+                ),
+                new RtRulePath(
                     new RtRule.ByPath(Pattern.compile("/\\.health")),
                     new HealthSlice(settings)
                 ),
