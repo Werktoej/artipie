@@ -39,14 +39,24 @@ Query parameters:
 - **path** (optional): Path within the repository; default is root. Must not contain `..` or invalid segments.
 - **limit** (optional): Maximum number of entries to return (default 100, max 1000). Use with **offset** for pagination on large directories.
 - **offset** (optional): Number of entries to skip for pagination (default 0).
+- **includeSize** (optional): If `true`, include **size** (bytes) for file entries (from storage metadata; may be slower).
+- **includeDownloadUrl** (optional): If `true`, include **downloadUrl** for file entries (builds URL using request host and repo port 8080).
 
-Response is a JSON array of entries, each with `name`, `path`, `type` (`file` or `dir`), and optionally `size` (bytes).
+Response is a JSON array of entries, each with `name`, `path`, `type` (`file` or `dir`), and optionally `size` (bytes) and `downloadUrl` when requested.
 
 **Large repos:** List can be slow on very large storages. Always use `limit` and `offset` when paging; avoid requesting huge directories in one call.
 
 **Supported repository types:** Content listing works for types with a listable storage layout: **file**, **file-proxy**, and **huggingface-proxy** (and other proxies that cache to storage). For file-proxy and huggingface-proxy, the list shows cached paths (same as a file repo from storage perspective). Other types (e.g. Maven, Docker) may return empty or unsupported behaviour; support can be added per type later.
 
-All content endpoints require the same JWT authentication and repo READ permission as other repository API calls. The dashboard UI that uses this API (artifact browser, upload/delete from UI) is implemented in the [Artipie front](https://github.com/artipie/front) repository (Phase 2); this repo only provides the API.
+**Upload content:** `PUT /api/v1/repository/{rname}/content?path={path}` uploads a file; request body is raw binary. **path** is required. Overwrites if the path already exists. Size limit is enforced (default 100 MiB); **413 Payload Too Large** if exceeded. Requires repo **CREATE** or **UPDATE** permission.
+
+**Get content metadata:** `GET /api/v1/repository/{rname}/content/metadata?path={path}` returns metadata (name, path, type, optional size) for a single artifact or directory. **path** is required. Returns 404 if the path does not exist.
+
+**Search content:** `GET /api/v1/repository/{rname}/content/search?q={query}&path={path}&limit={limit}&offset={offset}` searches for artifacts by path/name. **q** is required (prefix match; max 256 chars). **path** scopes the search (default root). Returns the same entry shape as list. May be slow on very large repos; use **path** to scope.
+
+**Delete content:** `DELETE /api/v1/repository/{rname}/content?path={path}` removes an artifact or directory. **path** is required. To delete a directory and all its children, set **recursive=true** (query) or header **X-Recursive-Delete: true**. Without recursive, deleting a non-empty directory returns 400 (directory not empty). Requires repo **DELETE** (or WRITE) permission. Path validation is the same as for list (no `..`, allowlisted segments).
+
+All content endpoints require JWT authentication. List/get/search require **READ**; upload requires **CREATE**/ **UPDATE**; delete requires **DELETE** (or WRITE). The dashboard UI (artifact browser, upload/delete from UI) is implemented in the [Artipie front](https://github.com/artipie/front) repository (Phase 2); this repo only provides the API.
 
 ## Health endpoints (container deployment)
 
